@@ -1,0 +1,55 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: yum-test-1
+spec:
+  completionDeadlineSeconds: 3600
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    pushSecret:
+      name: images-paas-push-config
+    to:
+      kind: DockerImage
+      name: images.paas.redhat.com/it-iam-mpp/idmchangepass:latest
+  resources:
+    limits:
+      cpu: 1500m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 125Mi
+  runPolicy: Serial
+  source:
+    configMaps:
+    - configMap:
+        name: rhsm-conf
+      destinationDir: etc-rhsm-conf
+    - configMap:
+        name: rhsm-ca
+      destinationDir: etc-rhsm-ca
+    - configMap:
+        name: rhsmplugins
+      destinationDir: usr-share-rhsmplugins
+    git:
+      ref: main
+      uri: https://gitlab.corp.redhat.com/mpatercz/yum-test.git
+    secrets:
+    - destinationDir: etc-pki-entitlement
+      secret:
+        name: etc-pki-entitlement
+    - destinationDir: etc-pki-consumer
+      secret:
+        name: consumer-keys
+    - destinationDir: etc-pki-product
+      secret:
+        name: product-keys
+    sourceSecret:
+      name: rhitca
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+      noCache: true
+    type: Docker
+  successfulBuildsHistoryLimit: 5
